@@ -71,6 +71,13 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SentimentSatisfiedAlt
 import androidx.compose.material.icons.filled.VideoFile
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.offset
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -507,6 +514,79 @@ fun ChatDetailScreen(
                     .background(MaterialTheme.colorScheme.outline)
             )
 
+            // 1. Pinned Announcement Banner (per approved features mockup)
+            var pinDismissed by rememberSaveable(uiState.chat?.id) { mutableStateOf(false) }
+            val showPinnedBanner = (uiState.chat?.isPinned == true) && !pinDismissed
+            if (showPinnedBanner) {
+                Surface(
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(26.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(MaterialTheme.colorScheme.primary),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PushPin,
+                                    contentDescription = "Pinned message",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            }
+                            Spacer(Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "PINNED CONVERSATION",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    letterSpacing = 0.5.sp
+                                )
+                                Text(
+                                    text = uiState.chat?.title ?: "Pinned conversation",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                        IconButton(
+                            onClick = { pinDismissed = true },
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Dismiss pinned banner",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(MaterialTheme.colorScheme.outline)
+                )
+            }
+
             // Messages Container
             Box(
                 modifier = Modifier
@@ -621,7 +701,8 @@ fun ChatDetailScreen(
                                     onAddReaction = { emoji -> onAddReaction(message.id, emoji) },
                                     onImageClick = { att, url -> fullScreenAttachment = att to url },
                                     onDownloadClick = onDownloadAttachment,
-                                    onSaveToDownloads = onSaveToDownloads
+                                    onSaveToDownloads = onSaveToDownloads,
+                                    onReply = { onSetReplyingTo(message) }
                                 )
                             }
                         }
@@ -1234,6 +1315,7 @@ private fun MessageBubble(
     onImageClick: (Attachment, String) -> Unit,
     onDownloadClick: (Attachment) -> Unit,
     onSaveToDownloads: (Attachment) -> Unit = onDownloadClick,
+    onReply: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // Requirement 4: A deleted message shows as one muted italic line
@@ -1267,26 +1349,71 @@ private fun MessageBubble(
     val metaColor = if (isMe) Color.White.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
     val tickColor = if (isMe) Color.White.copy(alpha = 0.9f) else metaColor
 
+    var swipeOffset by remember { mutableStateOf(0f) }
+    val animatedSwipeOffset by animateFloatAsState(
+        targetValue = swipeOffset,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "swipeToReply"
+    )
+
     Column(
         horizontalAlignment = if (isMe) Alignment.End else Alignment.Start,
         modifier = modifier.fillMaxWidth()
     ) {
-        Surface(
-            shape = bubbleShape,
-            color = bubbleColor,
-            border = bubbleBorder,
-            shadowElevation = if (isMe) 0.dp else 1.dp,
-            modifier = Modifier
-                .widthIn(max = 600.dp)
-                .padding(
-                    start = if (isMe) 48.dp else 0.dp,
-                    end = if (isMe) 0.dp else 48.dp
-                )
-                .combinedClickable(
-                    onClick = {},
-                    onLongClick = onLongClick
-                )
+        Box(
+            contentAlignment = if (isMe) Alignment.CenterEnd else Alignment.CenterStart
         ) {
+            if (animatedSwipeOffset > 15f) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = 12.dp)
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Reply,
+                        contentDescription = "Reply",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
+            Surface(
+                shape = bubbleShape,
+                color = bubbleColor,
+                border = bubbleBorder,
+                shadowElevation = if (isMe) 0.dp else 1.dp,
+                modifier = Modifier
+                    .widthIn(max = 600.dp)
+                    .offset { androidx.compose.ui.unit.IntOffset(animatedSwipeOffset.toInt(), 0) }
+                    .pointerInput(Unit) {
+                        detectHorizontalDragGestures(
+                            onDragEnd = {
+                                if (swipeOffset > 80f) {
+                                    onReply()
+                                }
+                                swipeOffset = 0f
+                            },
+                            onDragCancel = { swipeOffset = 0f },
+                            onHorizontalDrag = { change, dragAmount ->
+                                change.consume()
+                                swipeOffset = (swipeOffset + dragAmount).coerceIn(0f, 140f)
+                            }
+                        )
+                    }
+                    .padding(
+                        start = if (isMe) 48.dp else 0.dp,
+                        end = if (isMe) 0.dp else 48.dp
+                    )
+                    .combinedClickable(
+                        onClick = {},
+                        onLongClick = onLongClick
+                    )
+            ) {
             Column(
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
             ) {
@@ -1436,6 +1563,7 @@ private fun MessageBubble(
                 }
             }
         }
+    }
 
         // Reactions Display below the message bubble
         if (message.reactions.isNotEmpty()) {
@@ -1714,51 +1842,137 @@ private fun ChatInputBar(
         // Quoted reply bar preview above text field if replying
         if (replyingToMessage != null) {
             Surface(
-                color = GamEmpiresBg,
-                modifier = Modifier.fillMaxWidth()
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 2.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
                 ) {
                     Box(
                         modifier = Modifier
                             .width(3.dp)
-                            .height(26.dp)
-                            .background(GamEmpiresGold)
+                            .height(28.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
                     Column(modifier = Modifier.weight(1f)) {
+                        val senderLabel = replyingToMessage.senderName?.ifBlank { "message" } ?: "message"
                         Text(
-                            text = "Replying to message",
-                            fontSize = 11.sp,
+                            text = "Replying to $senderLabel",
+                            style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
-                            color = GamEmpiresGold
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = replyingToMessage.content,
-                            fontSize = 12.sp,
-                            color = GamEmpiresTextSecondary,
+                            text = replyingToMessage.content.ifBlank { "Shared attachment" },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
                     IconButton(
                         onClick = onCancelReply,
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Cancel reply",
-                            tint = GamEmpiresTextSecondary,
-                            modifier = Modifier.size(18.dp)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
             }
         }
 
-        // Input Field and Send Button
+        var isRecordingVoice by rememberSaveable { mutableStateOf(false) }
+        var recordingSeconds by rememberSaveable { mutableStateOf(0) }
+        LaunchedEffect(isRecordingVoice) {
+            if (isRecordingVoice) {
+                recordingSeconds = 0
+                while (isRecordingVoice) {
+                    kotlinx.coroutines.delay(1000)
+                    recordingSeconds++
+                }
+            }
+        }
+
+        if (isRecordingVoice) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 10.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFEF4444))
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    val mins = recordingSeconds / 60
+                    val secs = recordingSeconds % 60
+                    Text(
+                        text = "$mins:${if (secs < 10) "0" else ""}$secs",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFEF4444)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "Recording voice note...",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = { isRecordingVoice = false },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Cancel recording",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(Modifier.width(4.dp))
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .clickable(
+                                onClick = { isRecordingVoice = false },
+                                onClickLabel = "Send voice note"
+                            )
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Send,
+                                contentDescription = "Send voice note",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            // Input Field and Send Button
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -1842,28 +2056,52 @@ private fun ChatInputBar(
 
             Spacer(modifier = Modifier.width(6.dp))
 
-            Surface(
-                shape = CircleShape,
-                color = if (canSend) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .clickable(
-                        enabled = canSend,
-                        onClick = onSendMessage,
-                        onClickLabel = "Send message"
-                    )
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Send,
-                        contentDescription = "Send message",
-                        tint = if (canSend) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
-                    )
+            if (canSend) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .clickable(
+                            onClick = onSendMessage,
+                            onClickLabel = "Send message"
+                        )
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Send,
+                            contentDescription = "Send message",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            } else {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .clickable(
+                            onClick = { isRecordingVoice = true },
+                            onClickLabel = "Record voice note"
+                        )
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = "Record voice note",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
                 }
             }
         }
+    }
 
         // Requirement 3: Native Compose Emoji Picker Grid
         AnimatedVisibility(visible = showEmojiPicker) {

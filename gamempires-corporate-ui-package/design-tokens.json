@@ -1,0 +1,29 @@
+{
+  "brand": {
+    "primary": "#2563EB",
+    "primaryHover": "#1D4ED8"
+  },
+  "lightSurface": {
+    "background": "#FAFAF9",
+    "card": "#FFFFFF",
+    "border": "#E2E8F0",
+    "text": "#0F172A"
+  },
+  "darkSurface": {
+    "background": "#020617",
+    "card": "#0F172A",
+    "border": "#1E293B",
+    "text": "#F8FAFC"
+  },
+  "status": {
+    "available": "#10B981",
+    "meeting": "#F59E0B",
+    "focus": "#6366F1",
+    "away": "#94A3B8"
+  },
+  "typography": {
+    "fontFamily": "Inter, system-ui, sans-serif",
+    "cardRadius": "24px",
+    "pillRadius": "9999px"
+  }
+}

@@ -1,0 +1,833 @@
+package com.gamempires.messenger.ui.chatlist
+
+import androidx.compose.material3.MaterialTheme
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddComment
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.CloudQueue
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewFontScale
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import com.gamempires.messenger.model.ChatFilterTab
+import com.gamempires.messenger.model.PresenceStatus
+import com.gamempires.messenger.model.User
+import com.gamempires.messenger.ui.chatlist.components.ChatListItem
+import com.gamempires.messenger.ui.chatlist.components.PresenceSelectorDialog
+import com.gamempires.messenger.ui.chatlist.components.UserAvatar
+import com.gamempires.messenger.ui.components.GamEmpiresLogo
+import com.gamempires.messenger.ui.theme.GamEmpiresBg
+import com.gamempires.messenger.ui.theme.GamEmpiresBorder
+import com.gamempires.messenger.ui.theme.GamEmpiresCard
+import com.gamempires.messenger.ui.theme.GamEmpiresGold
+import com.gamempires.messenger.ui.theme.GamEmpiresOnlineGreen
+import com.gamempires.messenger.ui.theme.GamEmpiresPillLight
+import com.gamempires.messenger.ui.theme.GamEmpiresPillText
+import com.gamempires.messenger.ui.theme.GamEmpiresSurface
+import com.gamempires.messenger.ui.theme.GamEmpiresTextMuted
+import com.gamempires.messenger.ui.theme.GamEmpiresTextPrimary
+import com.gamempires.messenger.ui.theme.GamEmpiresTextSecondary
+import com.gamempires.messenger.ui.theme.MyApplicationTheme
+import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.MarkUnreadChatAlt
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Person
+import com.gamempires.messenger.ui.components.GamingBackground
+import com.gamempires.messenger.ui.components.GeColors
+import com.gamempires.messenger.ui.components.geAccent
+import com.gamempires.messenger.ui.components.geBorderColor
+import com.gamempires.messenger.ui.components.geChamferShape
+import com.gamempires.messenger.ui.components.geFieldColor
+import com.gamempires.messenger.ui.components.geIsDark
+import com.gamempires.messenger.ui.components.geSlantShape
+import com.gamempires.messenger.ui.components.geSlashTitle
+import com.gamempires.messenger.ui.home.GamingHomeTab
+import com.gamempires.messenger.ui.theme.GeDisplay
+import com.gamempires.messenger.ui.theme.GeUi
+import kotlinx.coroutines.delay
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ChatListScreen(
+    uiState: ChatListUiState,
+    onSearchQueryChange: (String) -> Unit,
+    onFilterTabSelected: (ChatFilterTab) -> Unit,
+    onChatSelected: (String) -> Unit,
+    onRefresh: () -> Unit = {},
+    onSearchUsers: suspend (String) -> List<User> = { emptyList() },
+    onCreateOneToOneChat: (String) -> Unit = {},
+    onHomeSelected: () -> Unit = {},
+    isHomeSelected: Boolean = false,
+    onTogglePinChat: (String) -> Unit = {},
+    onToggleMuteChat: (String) -> Unit = {},
+    onMarkChatAsRead: (String) -> Unit = {},
+    onUpdatePresence: (PresenceStatus, String?) -> Unit = { _, _ -> },
+    isLoggedIn: Boolean = false,
+    onOpenLogin: () -> Unit = {},
+    onLogout: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    var showPresenceDialog by rememberSaveable { mutableStateOf(false) }
+    var showNewChatDialog by rememberSaveable { mutableStateOf(false) }
+    var otherExpanded by rememberSaveable { mutableStateOf(true) }
+
+    val favoriteChats = uiState.chats.filter { it.isPinned }
+    val otherChats = uiState.chats.filter { !it.isPinned }
+
+    if (showPresenceDialog) {
+        PresenceSelectorDialog(
+            currentUser = uiState.currentUser,
+            onDismissRequest = { showPresenceDialog = false },
+            onStatusSelected = onUpdatePresence,
+            onLogout = onLogout
+        )
+    }
+
+    if (showNewChatDialog) {
+        NewChatDialog(
+            onDismissRequest = { showNewChatDialog = false },
+            onSearchUsers = onSearchUsers,
+            onUserSelected = { userId ->
+                showNewChatDialog = false
+                onCreateOneToOneChat(userId)
+            }
+        )
+    }
+
+    // Search doubles as "start a new chat": people matching the search are listed under the chats.
+    var peopleResults by remember { mutableStateOf<List<User>>(emptyList()) }
+    LaunchedEffect(uiState.searchQuery) {
+        val q = uiState.searchQuery.trim()
+        if (q.length >= 2) {
+            delay(300)
+            peopleResults = try { onSearchUsers(q) } catch (_: Exception) { emptyList() }
+        } else {
+            peopleResults = emptyList()
+        }
+    }
+    val dark = geIsDark()
+    val accent = geAccent()
+    val showHome = uiState.selectedFilterTab == ChatFilterTab.HOME && uiState.searchQuery.isBlank()
+
+    GamingBackground(modifier = modifier) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Offline banner (Requirement 14)
+            AnimatedVisibility(visible = uiState.isOffline) {
+                Surface(
+                    color = Color(0xFF854D0E),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CloudOff,
+                            contentDescription = "Offline indicator",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "No connection – retrying",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
+
+            // Top bar: GamEmpires logo and profile picture
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                GamEmpiresLogo(
+                    fontSize = 20.sp,
+                    chatTagSize = 16.sp
+                )
+                val currentUsr = uiState.currentUser
+                val displayName = currentUsr?.name?.ifBlank { "User" } ?: "User"
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(26))
+                        .border(1.5.dp, GeColors.Amber, RoundedCornerShape(26))
+                        .clickable(
+                            onClick = { showPresenceDialog = true },
+                            onClickLabel = "Open status and presence dialog"
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    UserAvatar(
+                        imageUrl = currentUsr?.avatarUrl,
+                        name = displayName,
+                        presenceStatus = currentUsr?.status ?: PresenceStatus.ONLINE,
+                        size = 40.dp,
+                        showPresence = true
+                    )
+                }
+            }
+
+            // Search: finds chats and people to start a new chat with
+            val searchShape = geChamferShape(10.dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = 2.dp, bottom = 10.dp)
+                    .height(42.dp)
+                    .clip(searchShape)
+                    .background(geFieldColor())
+                    .border(1.dp, geBorderColor(), searchShape)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 14.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search icon",
+                        tint = accent,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        if (uiState.searchQuery.isEmpty()) {
+                            Text(
+                                text = "Search or start a chat",
+                                color = GamEmpiresTextMuted,
+                                fontSize = 15.sp
+                            )
+                        }
+                        // The search field can only take focus after the user taps it. This stops Android/Compose
+                        // from auto-focusing it (and opening the keyboard) when the app starts.
+                        var searchActive by remember { mutableStateOf(false) }
+                        val searchFocus = remember { androidx.compose.ui.focus.FocusRequester() }
+                        LaunchedEffect(searchActive) { if (searchActive) searchFocus.requestFocus() }
+                        BasicTextField(
+                            value = uiState.searchQuery,
+                            onValueChange = onSearchQueryChange,
+                            singleLine = true,
+                            textStyle = TextStyle(
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 15.sp
+                            ),
+                            cursorBrush = SolidColor(GeColors.Amber),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusRequester(searchFocus)
+                                .focusProperties { canFocus = searchActive }
+                                .onFocusChanged { if (!it.isFocused && uiState.searchQuery.isEmpty()) searchActive = false }
+                        )
+                        if (!searchActive) {
+                            // Invisible tap target over the field: first tap enables and focuses the search.
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clickable(
+                                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                                        indication = null
+                                    ) { searchActive = true }
+                            )
+                        }
+                    }
+                    if (uiState.searchQuery.isNotEmpty()) {
+                        IconButton(
+                            onClick = { onSearchQueryChange("") },
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Clear search query",
+                                tint = GamEmpiresTextSecondary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Tabs: Home (opens on start), All, Direct, Groups, Unread
+            val tabOrder = ChatFilterTab.entries
+            val tabScroll = rememberScrollState()
+            // Keep the selected tab visible when it changes by swiping (Unread can be off-screen on small phones)
+            LaunchedEffect(uiState.selectedFilterTab) {
+                val idx = tabOrder.indexOf(uiState.selectedFilterTab)
+                tabScroll.animateScrollTo(if (idx <= 1) 0 else (tabScroll.maxValue * idx) / tabOrder.lastIndex)
+            }
+            // Swipe left/right on the list or Home to move to the next/previous tab.
+            // Animation: the page follows the finger, slides out on release, and the new tab slides in
+            // from the side it came from (also when a tab is tapped). Old content leaves before the switch,
+            // so no wrong list is ever shown while moving.
+            val currentTab = rememberUpdatedState(uiState.selectedFilterTab)
+            val selectTab = rememberUpdatedState(onFilterTabSelected)
+            val swipeOffset = remember { Animatable(0f) }
+            val swipeScope = rememberCoroutineScope()
+            var pageWidth by remember { mutableStateOf(1f) }
+            var previousTabIndex by remember { mutableStateOf(tabOrder.indexOf(uiState.selectedFilterTab)) }
+            LaunchedEffect(uiState.selectedFilterTab) {
+                val idx = tabOrder.indexOf(uiState.selectedFilterTab)
+                if (idx != previousTabIndex) {
+                    val fromRight = idx > previousTabIndex
+                    previousTabIndex = idx
+                    swipeOffset.snapTo((if (fromRight) 1f else -1f) * pageWidth * 0.35f)
+                    swipeOffset.animateTo(0f, spring(dampingRatio = 0.8f, stiffness = 380f))
+                }
+            }
+            val tabSwipe = Modifier
+                .onSizeChanged { pageWidth = it.width.toFloat().coerceAtLeast(1f) }
+                .graphicsLayer {
+                    translationX = swipeOffset.value
+                    alpha = 1f - (kotlin.math.abs(swipeOffset.value) / pageWidth * 0.9f).coerceIn(0f, 0.6f)
+                }
+                .pointerInput(Unit) {
+                    var dragged = 0f
+                    detectHorizontalDragGestures(
+                        onDragStart = { dragged = 0f },
+                        onHorizontalDrag = { change, amount ->
+                            dragged += amount
+                            change.consume()
+                            val idx = tabOrder.indexOf(currentTab.value)
+                            // resist at the ends (nothing before Home, nothing after Unread)
+                            val atEdge = (dragged > 0 && idx == 0) || (dragged < 0 && idx == tabOrder.lastIndex)
+                            swipeScope.launch { swipeOffset.snapTo(dragged * if (atEdge) 0.15f else 0.55f) }
+                        },
+                        onDragCancel = { swipeScope.launch { swipeOffset.animateTo(0f, spring()) } },
+                        onDragEnd = {
+                            val idx = tabOrder.indexOf(currentTab.value)
+                            val minSwipe = 64.dp.toPx()
+                            val target = when {
+                                dragged < -minSwipe && idx < tabOrder.lastIndex -> tabOrder[idx + 1]
+                                dragged > minSwipe && idx > 0 -> tabOrder[idx - 1]
+                                else -> null
+                            }
+                            swipeScope.launch {
+                                if (target == null) {
+                                    swipeOffset.animateTo(0f, spring(dampingRatio = 0.7f, stiffness = 500f))
+                                } else {
+                                    val out = if (dragged < 0) -pageWidth * 0.45f else pageWidth * 0.45f
+                                    swipeOffset.animateTo(out, tween(durationMillis = 110))
+                                    selectTab.value(target)
+                                }
+                            }
+                        }
+                    )
+                }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(tabScroll)
+                    .padding(horizontal = 12.dp)
+                    .padding(bottom = 4.dp)
+            ) {
+                ChatFilterTab.entries.forEach { tab ->
+                    GeTabChip(
+                        tab = tab,
+                        selected = uiState.selectedFilterTab == tab,
+                        onClick = { onFilterTabSelected(tab) }
+                    )
+                }
+            }
+
+            if (showHome) {
+                GamingHomeTab(
+                    userName = uiState.currentUser?.name?.ifBlank { null } ?: "Player",
+                    status = uiState.statusMessage,
+                    onOpenChat = onChatSelected,
+                    modifier = Modifier.weight(1f).then(tabSwipe)
+                )
+            } else {
+                PullToRefreshBox(
+                    isRefreshing = uiState.isManualRefreshing,
+                    onRefresh = onRefresh,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .then(tabSwipe)
+                ) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        item { Spacer(Modifier.height(4.dp)) }
+                        // Pinned chats (e.g. Note to self) stay on top, without a heading.
+                        items(favoriteChats, key = { it.id }) { chat ->
+                            val otherUserId = chat.participantIds.find { it != uiState.currentUser?.id }
+                            val otherUser = uiState.users.find { it.id == otherUserId }
+                            val presence = if (otherUserId != null) uiState.userPresences[otherUserId] else null
+                            ChatListItem(
+                                chat = chat,
+                                otherUser = otherUser,
+                                presenceStatus = presence,
+                                typingText = null,
+                                isSelected = chat.id == uiState.selectedChatId && !isHomeSelected,
+                                onChatClick = onChatSelected,
+                                onTogglePin = onTogglePinChat,
+                                onToggleMute = onToggleMuteChat,
+                                onMarkAsRead = onMarkChatAsRead
+                            )
+                        }
+
+                        item {
+                            CategoryHeader(
+                                title = "CHATS",
+                                isExpanded = otherExpanded,
+                                onToggle = { otherExpanded = !otherExpanded }
+                            )
+                        }
+
+                        if (otherExpanded) {
+                            items(otherChats, key = { it.id }) { chat ->
+                                val otherUserId = chat.participantIds.find { it != uiState.currentUser?.id }
+                                val otherUser = uiState.users.find { it.id == otherUserId }
+                                val presence = if (otherUserId != null) uiState.userPresences[otherUserId] else null
+                                ChatListItem(
+                                    chat = chat,
+                                    otherUser = otherUser,
+                                    presenceStatus = presence,
+                                    typingText = null,
+                                    isSelected = chat.id == uiState.selectedChatId && !isHomeSelected,
+                                    onChatClick = onChatSelected,
+                                    onTogglePin = onTogglePinChat,
+                                    onToggleMute = onToggleMuteChat,
+                                    onMarkAsRead = onMarkChatAsRead
+                                )
+                            }
+                        }
+
+                        // People matching the search: tap to start (or open) a one-to-one chat.
+                        if (peopleResults.isNotEmpty() && uiState.searchQuery.isNotBlank()) {
+                            item {
+                                CategoryHeader(title = "START A NEW CHAT", isExpanded = true, onToggle = {}, showArrow = false)
+                            }
+                            items(peopleResults, key = { "person_" + it.id }) { user ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { onCreateOneToOneChat(user.id) }
+                                        .padding(horizontal = 16.dp, vertical = 7.dp)
+                                ) {
+                                    UserAvatar(
+                                        imageUrl = user.avatarUrl,
+                                        name = user.name,
+                                        presenceStatus = user.status,
+                                        size = 46.dp
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column(Modifier.weight(1f)) {
+                                        Text(
+                                            text = user.name,
+                                            fontFamily = GeUi,
+                                            fontSize = 17.sp,
+                                            color = GamEmpiresTextPrimary,
+                                            maxLines = 1
+                                        )
+                                        Text(
+                                            text = "Tap to chat",
+                                            fontSize = 13.sp,
+                                            color = GamEmpiresTextMuted
+                                        )
+                                    }
+                                    Icon(
+                                        imageVector = Icons.Default.AddComment,
+                                        contentDescription = "Start a chat with ${user.name}",
+                                        tint = accent,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        }
+                        item { Spacer(Modifier.height(16.dp)) }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GeTabChip(tab: ChatFilterTab, selected: Boolean, onClick: () -> Unit) {
+    val shape = geSlantShape(6.dp)
+    val icon = when (tab) {
+        ChatFilterTab.HOME -> Icons.Outlined.Home
+        ChatFilterTab.ALL -> Icons.Outlined.GridView
+        ChatFilterTab.DIRECT -> Icons.Outlined.Person
+        ChatFilterTab.GROUPS -> Icons.Outlined.Groups
+        ChatFilterTab.UNREAD -> Icons.Outlined.MarkUnreadChatAlt
+    }
+    val accent = geAccent()
+    val content = if (selected) Color(0xFF111111) else MaterialTheme.colorScheme.onSurface
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .height(34.dp)
+            .clip(shape)
+            .then(
+                if (selected) Modifier.background(GeColors.AmberGradient)
+                else Modifier.background(geFieldColor()).border(1.dp, geBorderColor(), shape)
+            )
+            .clickable(onClick = onClick, onClickLabel = "Show ${tab.label}")
+            .padding(horizontal = 10.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = if (selected) Color(0xFF111111) else accent,
+            modifier = Modifier.size(15.dp)
+        )
+        Spacer(Modifier.width(4.dp))
+        Text(
+            text = tab.label,
+            fontFamily = GeUi,
+            fontSize = 15.sp,
+            letterSpacing = 0.3.sp,
+            color = content
+        )
+    }
+}
+
+@Composable
+private fun NewChatDialog(
+    onDismissRequest: () -> Unit,
+    onSearchUsers: suspend (String) -> List<User>,
+    onUserSelected: (String) -> Unit
+) {
+    var query by rememberSaveable { mutableStateOf("") }
+    var results by remember { mutableStateOf<List<User>>(emptyList()) }
+    var isSearching by remember { mutableStateOf(false) }
+
+    LaunchedEffect(query) {
+        if (query.trim().length >= 2) {
+            delay(300)
+            isSearching = true
+            try {
+                results = onSearchUsers(query.trim())
+            } catch (_: Exception) {
+                results = emptyList()
+            } finally {
+                isSearching = false
+            }
+        } else {
+            results = emptyList()
+            isSearching = false
+        }
+    }
+
+    Dialog(onDismissRequest = onDismissRequest) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = GamEmpiresSurface,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+            ) {
+                Text(
+                    text = "New Conversation",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = GamEmpiresTextPrimary
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    placeholder = {
+                        Text("Search user by name...", color = GamEmpiresTextMuted, fontSize = 13.sp)
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search users",
+                            tint = GamEmpiresTextSecondary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = GamEmpiresBg,
+                        unfocusedContainerColor = GamEmpiresBg,
+                        focusedBorderColor = GamEmpiresGold,
+                        unfocusedBorderColor = GamEmpiresBorder,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                if (isSearching) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                } else if (results.isNotEmpty()) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                    ) {
+                        items(results, key = { it.id }) { user ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { onUserSelected(user.id) }
+                                    .padding(vertical = 8.dp, horizontal = 4.dp)
+                            ) {
+                                UserAvatar(
+                                    imageUrl = user.avatarUrl,
+                                    name = user.name,
+                                    presenceStatus = user.status,
+                                    size = 36.dp
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = user.name,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = GamEmpiresTextPrimary
+                                    )
+                                    Text(
+                                        text = "@${user.id}",
+                                        fontSize = 11.sp,
+                                        color = GamEmpiresTextMuted
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } else if (query.trim().length >= 2) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No users found",
+                            fontSize = 13.sp,
+                            color = GamEmpiresTextMuted
+                        )
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Type at least 2 characters to search",
+                            fontSize = 12.sp,
+                            color = GamEmpiresTextMuted
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color.Transparent,
+                        modifier = Modifier.clickable(onClick = onDismissRequest)
+                    ) {
+                        Text(
+                            text = "Cancel",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = GamEmpiresTextSecondary,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryHeader(
+    title: String,
+    isExpanded: Boolean,
+    onToggle: () -> Unit,
+    showArrow: Boolean = true
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                enabled = showArrow,
+                onClick = onToggle,
+                onClickLabel = if (isExpanded) "Collapse $title section" else "Expand $title section"
+            )
+            .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 2.dp)
+    ) {
+        Text(
+            text = geSlashTitle(title),
+            fontFamily = GeDisplay,
+            fontSize = 11.sp,
+            letterSpacing = 2.6.sp,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        if (showArrow) {
+            Icon(
+                imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = if (isExpanded) "Collapse" else "Expand",
+                tint = geAccent(),
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    }
+}
+
+@PreviewScreenSizes
+@PreviewFontScale
+@Composable
+private fun ChatListScreenPreview() {
+    MyApplicationTheme {
+        ChatListScreen(
+            uiState = ChatListUiState(
+                chats = listOf(
+                    com.gamempires.messenger.model.Chat(
+                        id = "chat_1",
+                        type = ChatFilterTab.ALL.name.let { com.gamempires.messenger.model.ChatType.DIRECT },
+                        title = "Team Shadow",
+                        avatarUrl = null,
+                        participantIds = listOf("user_1"),
+                        lastMessage = null,
+                        unreadCount = 2,
+                        isPinned = true,
+                        isMuted = false,
+                        updatedAt = System.currentTimeMillis()
+                    ),
+                    com.gamempires.messenger.model.Chat(
+                        id = "chat_2",
+                        type = com.gamempires.messenger.model.ChatType.GROUP,
+                        title = "Announcements",
+                        avatarUrl = null,
+                        participantIds = listOf("user_1", "user_2"),
+                        lastMessage = null,
+                        unreadCount = 0,
+                        isPinned = false,
+                        isMuted = false,
+                        updatedAt = System.currentTimeMillis() - 3600000L
+                    )
+                ),
+                isLoggedIn = true
+            ),
+            onSearchQueryChange = {},
+            onFilterTabSelected = {},
+            onChatSelected = {}
+        )
+    }
+}
+
+
+

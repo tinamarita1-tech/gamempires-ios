@@ -1,0 +1,252 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1001 /* GamEmpiresMessengerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2001 /* GamEmpiresMessengerApp.swift */; };
+		1002 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2002 /* AppColors.swift */; };
+		1003 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2003 /* User.swift */; };
+		1004 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2004 /* Message.swift */; };
+		1005 /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2005 /* Chat.swift */; };
+		1006 /* ChatRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2006 /* ChatRowView.swift */; };
+		1007 /* PresenceSelectorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2007 /* PresenceSelectorSheet.swift */; };
+		1008 /* ChatListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2008 /* ChatListView.swift */; };
+		1009 /* ChatDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2009 /* ChatDetailView.swift */; };
+		1010 /* HomeTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2010 /* HomeTabView.swift */; };
+		1011 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2011 /* MainTabView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0001 /* GamEmpires.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GamEmpires.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2001 /* GamEmpiresMessengerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamEmpiresMessengerApp.swift; sourceTree = "<group>"; };
+		2002 /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
+		2003 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		2004 /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
+		2005 /* Chat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chat.swift; sourceTree = "<group>"; };
+		2006 /* ChatRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRowView.swift; sourceTree = "<group>"; };
+		2007 /* PresenceSelectorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresenceSelectorSheet.swift; sourceTree = "<group>"; };
+		2008 /* ChatListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListView.swift; sourceTree = "<group>"; };
+		2009 /* ChatDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatDetailView.swift; sourceTree = "<group>"; };
+		2010 /* HomeTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeTabView.swift; sourceTree = "<group>"; };
+		2011 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		2012 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		9001 = {
+			isa = PBXGroup;
+			children = (
+				2001 /* GamEmpiresMessengerApp.swift */,
+				2012 /* Info.plist */,
+				9002 /* Models */,
+				9003 /* Theme */,
+				9004 /* Views */,
+				9005 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		9002 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				2003 /* User.swift */,
+				2004 /* Message.swift */,
+				2005 /* Chat.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		9003 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				2002 /* AppColors.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		9004 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				2006 /* ChatRowView.swift */,
+				2007 /* PresenceSelectorSheet.swift */,
+				2008 /* ChatListView.swift */,
+				2009 /* ChatDetailView.swift */,
+				2010 /* HomeTabView.swift */,
+				2011 /* MainTabView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		9005 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0001 /* GamEmpires.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		5001 /* GamEmpires */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6001 /* Build configuration list for PBXNativeTarget "GamEmpires" */;
+			buildPhases = (
+				4001 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GamEmpires;
+			productName = GamEmpires;
+			productReference = 0001 /* GamEmpires.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					5001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = 6002 /* Build configuration list for PBXProject "GamEmpires" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 9001;
+			productRefGroup = 9005 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				5001 /* GamEmpires */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1001 /* GamEmpiresMessengerApp.swift in Sources */,
+				1002 /* AppColors.swift in Sources */,
+				1003 /* User.swift in Sources */,
+				1004 /* Message.swift in Sources */,
+				1005 /* Chat.swift in Sources */,
+				1006 /* ChatRowView.swift in Sources */,
+				1007 /* PresenceSelectorSheet.swift in Sources */,
+				1008 /* ChatListView.swift in Sources */,
+				1009 /* ChatDetailView.swift in Sources */,
+				1010 /* HomeTabView.swift in Sources */,
+				1011 /* MainTabView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		8001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGNING_ALLOWED = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gamempires.messenger;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		8002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGNING_ALLOWED = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gamempires.messenger;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		8003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+			};
+			name = Debug;
+		};
+		8004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6001 /* Build configuration list for PBXNativeTarget "GamEmpires" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8001 /* Debug */,
+				8002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6002 /* Build configuration list for PBXProject "GamEmpires" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8003 /* Debug */,
+				8004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 7001 /* Project object */;
+}

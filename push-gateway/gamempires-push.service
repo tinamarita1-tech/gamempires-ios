@@ -1,0 +1,26 @@
+[Unit]
+Description=GamEmpires push gateway (Nextcloud -> Firebase Cloud Messaging)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/gamempires-push/gateway.py
+Environment=PUSH_GATEWAY_BIND=127.0.0.1
+Environment=PUSH_GATEWAY_PORT=8790
+Environment=PUSH_GATEWAY_DB=/var/lib/gamempires-push/devices.db
+# Used only to check which user an app login belongs to (one phone per account)
+Environment=NEXTCLOUD_URL=https://talk.gamempires.com
+# The Firebase key stays root-only on disk; systemd hands a private copy to the service.
+LoadCredential=service-account.json:/etc/gamempires-push/service-account.json
+Environment=FIREBASE_SERVICE_ACCOUNT=%d/service-account.json
+DynamicUser=yes
+StateDirectory=gamempires-push
+Restart=always
+RestartSec=5
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

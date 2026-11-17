@@ -1,0 +1,50 @@
+name: Build iOS App
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    name: Build GamEmpires iOS App
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Xcode
+        uses: maxim-lobachev/XcodeSelect@v2
+        with:
+          version: '15.4'
+
+      - name: Build and Archive iOS App
+        run: |
+          set -e
+          echo "Building GamEmpires iOS Project..."
+          xcodebuild archive \
+            -project iosApp/GamEmpires.xcodeproj \
+            -scheme GamEmpires \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath "$RUNNER_TEMP/GamEmpires.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Package IPA (Payload zip)
+        run: |
+          set -e
+          mkdir -p "$RUNNER_TEMP/Payload"
+          cp -r "$RUNNER_TEMP/GamEmpires.xcarchive/Products/Applications/GamEmpires.app" "$RUNNER_TEMP/Payload/"
+          cd "$RUNNER_TEMP"
+          zip -qr "GamEmpires-iOS.ipa" Payload
+          mv "GamEmpires-iOS.ipa" "$GITHUB_WORKSPACE/GamEmpires-iOS.ipa"
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GamEmpires-iOS-IPA
+          path: GamEmpires-iOS.ipa
+          retention-days: 14

@@ -1,0 +1,26 @@
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+build/
+app/build/
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Heavy build outputs and backups
+*.apk
+*.zip
+*.tar.gz
+_backup*
+_old*
+_previews
+_original-backup
+_withdrawn-do-not-share
+icon-backup*
+IT-notes*
+it-help-bot/
+diagnostics/
+scratch/

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Crowned Shield silhouette for Android 13+ Themed Icons -->
+    <!-- Crown -->
+    <path
+        android:pathData="M41,36 L41,27 L47,31 L54,23 L61,31 L67,27 L67,36 Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- Shield Outline -->
+    <path
+        android:pathData="M32,37 H76 C76,37 76,57 76,60 C76,72 54,82 54,82 C54,82 32,72 32,60 Z"
+        android:strokeWidth="2"
+        android:strokeColor="#FFFFFF" />
+
+    <!-- "G" Monogram -->
+    <path
+        android:pathData="M49,46 H38 V70 H49 V58 H43.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="square"
+        android:strokeLineJoin="miter" />
+
+    <!-- "E" Monogram -->
+    <path
+        android:pathData="M70,46 H59 V70 H70 M59,58 H68"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="square"
+        android:strokeLineJoin="miter" />
+</vector>

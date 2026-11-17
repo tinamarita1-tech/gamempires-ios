@@ -1,0 +1,25 @@
+GamEmpires push gateway - quick start (talk VM 192.168.10.151)
+
+1) Firebase key (browser, signed in to the Firebase account):
+   console.firebase.google.com -> gamempires-messenger -> gear -> Project settings
+   -> Service accounts -> Generate new private key -> save as  service-account.json
+   in this folder (D:\AndroidBuilds - Copy\push-gateway). Do not share or email it.
+
+2) Copy to the VM (Windows PowerShell):
+   cd "D:\AndroidBuilds - Copy\push-gateway"
+   ssh sagher@192.168.10.151 "mkdir -p ~/push-gateway"
+   scp gateway.py gamempires-push.service install.sh service-account.json sagher@192.168.10.151:~/push-gateway/
+   Then delete service-account.json from this Windows folder (keep one offline backup).
+
+3) Install (on the VM):
+   ssh sagher@192.168.10.151
+   cd ~/push-gateway && sudo bash install.sh service-account.json
+
+4) If step 5/5 prints a Caddy block: add it to the Caddyfile as shown, reload Caddy,
+   run  curl -s https://talk.gamempires.com/push-gateway/health  -> {"status": "ok", ...}
+
+5) Phone: install app-debug.apk, sign in, allow notifications. Then on the VM:
+   curl -s http://127.0.0.1:8790/health     -> "devices": 1
+   (Docker Caddy case: use the address the installer printed instead of 127.0.0.1)
+   Lock the phone, send it a message / call it from the PC.
+   Live log:  sudo journalctl -u gamempires-push -f
